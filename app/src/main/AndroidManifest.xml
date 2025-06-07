@@ -11,8 +11,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Medimate"
-        tools:targetApi="31">  <!-- 미리보기용이라 실제 sdk랑 관계 X -->
+        tools:targetApi="31">
 
+        <!-- 앱 시작 시 첫 화면: SplashActivity -->
         <activity
             android:name=".SplashActivity"
             android:exported="true">
@@ -22,10 +23,13 @@
             </intent-filter>
         </activity>
 
+        <!-- 로그인 / 회원가입 화면 -->
         <activity android:name=".SigninActivity" />
         <activity android:name=".SignupActivity" />
-        <activity android:name=".MainActivity" />
 
+        <!-- 메인 기능 화면 -->
+        <activity android:name=".MainActivity" />
+        <activity android:name=".AddMediActivity" />
 
     </application>
 

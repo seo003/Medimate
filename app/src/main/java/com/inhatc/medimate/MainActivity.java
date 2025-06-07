@@ -10,29 +10,28 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnLogout;
+    private Button btnAddMedi, btnLogout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        btnAddMedi = findViewById(R.id.btnAddMedi);
         btnLogout = findViewById(R.id.btnLogout);
 
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // SharedPreferences 초기화 (로그아웃)
-                SharedPreferences pref = getSharedPreferences("login", MODE_PRIVATE);
-                SharedPreferences.Editor editor = pref.edit();
-                editor.clear(); // 또는 editor.remove("user_id");
-                editor.apply();
+        btnAddMedi.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, AddMediActivity.class);
+            startActivity(intent);
+        });
 
-                // 로그인 화면으로 이동
-                Intent intent = new Intent(MainActivity.this, SigninActivity.class);
-                startActivity(intent);
-                finish(); // 현재 MainActivity 종료
-            }
+        btnLogout.setOnClickListener(v -> {
+            SharedPreferences pref = getSharedPreferences("login", MODE_PRIVATE);
+            pref.edit().clear().apply();
+
+            Intent intent = new Intent(MainActivity.this, SigninActivity.class);
+            startActivity(intent);
+            finish();
         });
     }
 }
