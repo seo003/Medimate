@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MedicationCheck">
+
+    <Button
+        android:id="@+id/checkMedication"
+        android:layout_width="300dp"
+        android:layout_height="80dp"
+        android:layout_marginBottom="228dp"
+        android:backgroundTint="#E6467C"
+        android:text="복용확인"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.585"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/mediDateText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="208dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginBottom="84dp"
+        android:text="복용날짜"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/mediTimeText"
+        app:layout_constraintEnd_toStartOf="@+id/mediDate"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/mediTimeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="15dp"
+        android:layout_marginBottom="68dp"
+        android:text="복용시간"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/checkMedication"
+        app:layout_constraintEnd_toStartOf="@+id/mediTime"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <EditText
+        android:id="@+id/mediDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="date"
+        android:text="2025-06-17"
+        android:textSize="20sp"
+        app:layout_constraintBaseline_toBaselineOf="@+id/mediDateText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/mediDateText" />
+
+    <EditText
+        android:id="@+id/mediTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="1dp"
+        android:ems="10"
+        android:inputType="time"
+        android:text="오후 2시 37분"
+        android:textSize="20sp"
+        app:layout_constraintBaseline_toBaselineOf="@+id/mediTimeText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/mediTimeText" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
