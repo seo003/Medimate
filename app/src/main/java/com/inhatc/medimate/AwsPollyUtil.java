@@ -20,7 +20,7 @@ public class AwsPollyUtil {
     private static MediaPlayer mediaPlayer = null;
     public static String[] loadKeys(Context context) {
         try {
-            InputStream is = context.getAssets().open("aws_polly_key.env");
+            InputStream is = context.getAssets().open("api_key.env");
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 
             String accessKey = null;
@@ -38,9 +38,9 @@ public class AwsPollyUtil {
                     String key = parts[0].trim();
                     String value = parts[1].trim();
 
-                    if (key.equalsIgnoreCase("ACCESS_KEY")) {
+                    if (key.equalsIgnoreCase("POLLY_ACCESS_KEY")) {
                         accessKey = value;
-                    } else if (key.equalsIgnoreCase("SECRET_KEY")) {
+                    } else if (key.equalsIgnoreCase("POLLY_SECRET_KEY")) {
                         secretKey = value;
                     }
                 }
