@@ -6,6 +6,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -15,10 +17,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Medimate"
-        tools:targetApi="31" >
+        tools:targetApi="31">
         <activity
             android:name=".MedicationCheck"
             android:exported="false" />
+        <!-- 앱 시작 시 첫 화면: SplashActivity -->
         <activity
             android:name=".SplashActivity"
             android:exported="true" >
@@ -28,9 +31,13 @@
             </intent-filter>
         </activity>
       
+        <!-- 로그인 / 회원가입 화면 -->
         <activity android:name=".SigninActivity" />
         <activity android:name=".SignupActivity" />
+
+        <!-- 메인 기능 화면 -->
         <activity android:name=".MainActivity" />
+        <activity android:name=".AddMediActivity" />
         <activity android:name=".chatbot.ChatbotActivity" />
 
     </application>
