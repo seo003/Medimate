@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -14,17 +18,19 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Medimate"
         tools:targetApi="31">
-
+        <activity
+            android:name=".MedicationCheck"
+            android:exported="false" />
         <!-- 앱 시작 시 첫 화면: SplashActivity -->
         <activity
             android:name=".SplashActivity"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+      
         <!-- 로그인 / 회원가입 화면 -->
         <activity android:name=".SigninActivity" />
         <activity android:name=".SignupActivity" />
@@ -32,6 +38,7 @@
         <!-- 메인 기능 화면 -->
         <activity android:name=".MainActivity" />
         <activity android:name=".AddMediActivity" />
+        <activity android:name=".chatbot.ChatbotActivity" />
 
     </application>
 
