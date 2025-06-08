@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!-- 사용자 메시지 -->
+    <TextView
+        android:id="@+id/text_user"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#448AFF"
+        android:textColor="#FFFFFF"
+        android:padding="10dp"
+        android:layout_gravity="end"
+        android:visibility="gone"
+        android:textSize="16sp" />
+
+    <!-- 챗봇 메시지 -->
+    <TextView
+        android:id="@+id/text_bot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#E0E0E0"
+        android:textColor="#000000"
+        android:padding="10dp"
+        android:layout_gravity="start"
+        android:visibility="gone"
+        android:textSize="16sp" />
+</LinearLayout>
