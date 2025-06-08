@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-
+import com.inhatc.medimate.util.DrugNameDictionary;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -15,6 +15,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 약 이름 사전 초기화!!
+        DrugNameDictionary.initialize(this);
         setContentView(R.layout.activity_main);
 
         btnLogout = findViewById(R.id.btnLogout);
