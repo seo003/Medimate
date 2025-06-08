@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -30,14 +31,16 @@ import okhttp3.Response;
 
 public class AddMediActivity extends AppCompatActivity {
 
-    //추후 api 키 파일 생성해서 수정
+    // api key, url 파일 따로 만들어 백업
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final String CLOVA_URL = " ";
     private static final String CLOVA_KEY = " ";
     private static final String GPT_KEY = " ";
 
     private ImageView imagePreview;
-    private TextView txtResult, btnAnalyze;
+    private TextView txtResult;
+    private Button btnAnalyze;
+
     private Uri selectedImageUri = null;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private OkHttpClient client = new OkHttpClient();
