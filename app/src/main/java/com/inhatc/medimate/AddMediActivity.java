@@ -1,6 +1,12 @@
 package com.inhatc.medimate;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.AssetManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -14,9 +20,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,11 +43,11 @@ import okhttp3.Response;
 
 public class AddMediActivity extends AppCompatActivity {
 
-    // api key, url 파일 따로 만들어 백업
     private static final int PICK_IMAGE_REQUEST = 1;
-    private static final String CLOVA_URL = " ";
-    private static final String CLOVA_KEY = " ";
-    private static final String GPT_KEY = " ";
+
+    private String CLOVA_URL;
+    private String CLOVA_KEY;
+    private String GPT_KEY;
 
     private ImageView imagePreview;
     private TextView txtResult;
@@ -54,6 +66,8 @@ public class AddMediActivity extends AppCompatActivity {
         txtResult = findViewById(R.id.txtResult);
         btnAnalyze = findViewById(R.id.btnAnalyze);
 
+        loadApiKeys();
+
         imagePreview.setOnClickListener(v -> {
             Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             galleryIntent.setType("image/*");
@@ -69,6 +83,161 @@ public class AddMediActivity extends AppCompatActivity {
             executor.execute(this::processImage);
         });
     }
+
+    private void loadApiKeys() {
+        try {
+            AssetManager am = getAssets();
+            InputStream is = am.open("api_key.env");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("CLOVA_URL=")) {
+                    CLOVA_URL = line.substring("CLOVA_URL=".length()).trim();
+                } else if (line.startsWith("CLOVA_KEY=")) {
+                    CLOVA_KEY = line.substring("CLOVA_KEY=".length()).trim();
+                } else if (line.startsWith("GPT_KEY=")) {
+                    GPT_KEY = line.substring("GPT_KEY=".length()).trim();
+                }
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void callGpt(String ocrText) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("model", "gpt-3.5-turbo");
+
+            JSONArray messages = new JSONArray();
+            JSONObject system = new JSONObject();
+            system.put("role", "system");
+            system.put("content",
+                    "당신은 한국어 처방전(약제비 계산서/영수증)에서 복약 정보를 정확히 추출하는 전문가입니다.\n" +
+                            "주어진 텍스트에서 다음 JSON 구조로 반환하세요:\n" +
+                            "{\n" +
+                            "  \"조제일자\": \"YYYY-MM-DD\",\n" +
+                            "  \"약품목록\": [\n" +
+                            "    { \"약 이름\": \"로프민캡슐\", \"투약량(1회)\": \"2.0정\", \"횟수\": \"3회\", \"기간\": \"4일분\" }\n" +
+                            "  ]\n" +
+                            "}\n" +
+                            "- **투약량(1회)**는 복약안내에서 뽑고, JSON 키는 정확히 유지하세요."
+            );
+
+            JSONObject user = new JSONObject();
+            user.put("role", "user");
+            user.put("content", ocrText);
+
+            messages.put(system);
+            messages.put(user);
+            json.put("messages", messages);
+
+            Request request = new Request.Builder()
+                    .url("https://api.openai.com/v1/chat/completions")
+                    .addHeader("Authorization", "Bearer " + GPT_KEY)
+                    .addHeader("Content-Type", "application/json")
+                    .post(RequestBody.create(json.toString(), MediaType.parse("application/json")))
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override public void onFailure(Call call, IOException e) {
+                    runOnUiThread(() -> txtResult.setText("GPT 실패: " + e.getMessage()));
+                }
+
+                @Override public void onResponse(Call call, Response response) throws IOException {
+                    try {
+                        JSONObject fullJson = new JSONObject(response.body().string());
+                        String reply = fullJson.getJSONArray("choices").getJSONObject(0)
+                                .getJSONObject("message").getString("content");
+
+                        JSONObject resultJson = new JSONObject(reply);
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("📅 조제일자: ").append(resultJson.getString("조제일자")).append("\n\n");
+                        sb.append("💊 약품목록:\n");
+                        JSONArray meds = resultJson.getJSONArray("약품목록");
+
+                        SQLiteDatabase db = new DBHelper(AddMediActivity.this).getWritableDatabase();
+
+                        SharedPreferences prefs = getSharedPreferences("login", MODE_PRIVATE);
+                        int userId = prefs.getInt("user_id", -1);
+                        if (userId == -1) {
+                            runOnUiThread(() -> txtResult.setText("로그인 정보 없음"));
+                            return;
+                        }
+
+                        String dispenseDate = String.valueOf(resultJson.get("조제일자"));
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
+                        Date startDate = sdf.parse(dispenseDate);
+
+                        for (int i = 0; i < meds.length(); i++) {
+                            JSONObject item = meds.getJSONObject(i);
+                            String drugName = String.valueOf(item.get("약 이름"));
+                            String dose = String.valueOf(item.get("투약량(1회)"));
+                            int timesPerDay = Integer.parseInt(String.valueOf(item.get("횟수")).replaceAll("[^0-9]", ""));
+                            int durationDays = Integer.parseInt(String.valueOf(item.get("기간")).replaceAll("[^0-9]", ""));
+
+                            Calendar cal = Calendar.getInstance();
+                            cal.setTime(startDate);
+                            cal.add(Calendar.DATE, durationDays - 1);
+                            String endDate = sdf.format(cal.getTime());
+
+                            long drugId;
+                            Cursor cursor = db.rawQuery("SELECT drug_id FROM drug WHERE item_name = ?", new String[]{drugName});
+                            if (cursor.moveToFirst()) {
+                                drugId = cursor.getLong(0);
+                            } else {
+                                ContentValues drugValues = new ContentValues();
+                                drugValues.put("item_name", drugName);
+                                drugValues.put("entp_name", "");
+                                drugValues.put("main_ingredient", "");
+                                drugValues.put("efficacy", "");
+                                drugValues.put("warning", "");
+                                drugValues.put("image_url", "");
+                                drugValues.put("item_seq", drugName + "_seq");
+                                drugId = db.insert("drug", null, drugValues);
+                            }
+                            cursor.close();
+
+                            ContentValues medValues = new ContentValues();
+                            medValues.put("user_id", userId);
+                            medValues.put("drug_id", drugId);
+                            medValues.put("daily_frequency", timesPerDay);
+                            medValues.put("start_date", dispenseDate);
+                            medValues.put("end_date", endDate);
+                            medValues.put("ocr_raw_text", item.toString());
+                            long medicationId = db.insert("user_medication", null, medValues);
+
+                            String[] baseTimes = {"08:00", "13:00", "18:00", "22:00"};
+                            for (int j = 0; j < timesPerDay && j < baseTimes.length; j++) {
+                                ContentValues schedValues = new ContentValues();
+                                schedValues.put("medication_id", medicationId);
+                                schedValues.put("user_id", userId);
+                                schedValues.put("repeat_days", "daily");
+                                schedValues.put("dose_time", baseTimes[j]);
+                                schedValues.put("memo", dose);
+                                db.insert("medication_schedule", null, schedValues);
+                            }
+
+                            sb.append("🔹 ").append(drugName).append(" – ").append(dose)
+                                    .append(", ").append(timesPerDay).append("회, ").append(durationDays).append("일분\n");
+                        }
+
+                        db.close();
+                        runOnUiThread(() -> txtResult.setText(sb.toString()));
+
+                    } catch (Exception e) {
+                        runOnUiThread(() -> txtResult.setText("GPT 파싱 오류: " + e.getMessage()));
+                    }
+                }
+            });
+
+        } catch (Exception e) {
+            runOnUiThread(() -> txtResult.setText("GPT 요청 오류: " + e.getMessage()));
+        }
+    }
+
 
     private void processImage() {
         try {
@@ -112,81 +281,6 @@ public class AddMediActivity extends AppCompatActivity {
 
         } catch (Exception e) {
             runOnUiThread(() -> txtResult.setText("오류: " + e.getMessage()));
-        }
-    }
-
-    private void callGpt(String ocrText) {
-        try {
-            JSONObject json = new JSONObject();
-            json.put("model", "gpt-3.5-turbo");
-
-            JSONArray messages = new JSONArray();
-            JSONObject system = new JSONObject();
-            system.put("role", "system");
-            system.put("content",
-                    "당신은 한국어 처방전(약제비 계산서/영수증)에서 복약 정보를 정확히 추출하는 전문가입니다.\n" +
-                            "주어진 텍스트에서 다음 JSON 구조로 반환하세요:\n" +
-                            "{\n" +
-                            "  \"조제일자\": \"YYYY-MM-DD\",\n" +
-                            "  \"약품목록\": [\n" +
-                            "    { \"약 이름\": \"로프민캡슐\", \"투약량(1회)\": \"2.0정\", \"횟수\": \"3회\", \"기간\": \"4일분\" },\n" +
-                            "    { \"약 이름\": \"메디솔론정\", \"투약량(1회)\": \"0.5정\", \"횟수\": \"3회\", \"기간\": \"5일분\" }\n" +
-                            "  ]\n" +
-                            "}\n\n" +
-                            "- **투약량(1회)** 필드는 “1정씩”, “0.5정씩” 등 처방전의 **복약안내**(용법) 부분에서 뽑아야 합니다.\n" +
-                            "- ( ) 안에 붙은 약제의 표준 강도(예: 10mg, 0.25mg)는 무시하세요.\n" +
-                            "- JSON 키는 **조제일자**, **약품목록**, 그 안의 **약 이름**, **투약량(1회)**, **횟수**, **기간** 입니다."
-            );
-
-            JSONObject user = new JSONObject();
-            user.put("role", "user");
-            user.put("content", ocrText);
-
-            messages.put(system);
-            messages.put(user);
-            json.put("messages", messages);
-
-            Request request = new Request.Builder()
-                    .url("https://api.openai.com/v1/chat/completions")
-                    .addHeader("Authorization", "Bearer " + GPT_KEY)
-                    .addHeader("Content-Type", "application/json")
-                    .post(RequestBody.create(json.toString(), MediaType.parse("application/json")))
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override public void onFailure(Call call, IOException e) {
-                    runOnUiThread(() -> txtResult.setText("GPT 실패: " + e.getMessage()));
-                }
-
-                @Override public void onResponse(Call call, Response response) throws IOException {
-                    try {
-                        JSONObject fullJson = new JSONObject(response.body().string());
-                        String reply = fullJson.getJSONArray("choices").getJSONObject(0)
-                                .getJSONObject("message").getString("content");
-
-                        JSONObject resultJson = new JSONObject(reply);
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("\uD83D\uDCC5 조제일자: ").append(resultJson.getString("조제일자")).append("\n\n");
-                        sb.append("\uD83D\uDC8A 약품목록:\n");
-                        JSONArray meds = resultJson.getJSONArray("약품목록");
-                        for (int i = 0; i < meds.length(); i++) {
-                            JSONObject item = meds.getJSONObject(i);
-                            sb.append("\uD83D\uDD39 ").append(item.getString("약 이름"))
-                                    .append(" – ").append(item.getString("투약량(1회)"))
-                                    .append(", ").append(item.getString("횟수"))
-                                    .append(", ").append(item.getString("기간"))
-                                    .append("\n");
-                        }
-                        runOnUiThread(() -> txtResult.setText(sb.toString()));
-
-                    } catch (Exception e) {
-                        runOnUiThread(() -> txtResult.setText("GPT 파싱 오류: " + e.getMessage()));
-                    }
-                }
-            });
-
-        } catch (Exception e) {
-            runOnUiThread(() -> txtResult.setText("GPT 요청 오류: " + e.getMessage()));
         }
     }
 

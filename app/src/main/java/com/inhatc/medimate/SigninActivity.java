@@ -1,8 +1,9 @@
 package com.inhatc.medimate;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -12,8 +13,8 @@ import androidx.appcompat.app.AppCompatActivity;
 public class SigninActivity extends AppCompatActivity {
 
     private EditText editId, editPw;
-    private Button btnSignin, btnSignup;
     private DBHelper dbHelper;
+    private Button btnSignin, btnSignup;  // btnSignup 추가
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,49 +24,32 @@ public class SigninActivity extends AppCompatActivity {
         editId = findViewById(R.id.editId);
         editPw = findViewById(R.id.editPw);
         btnSignin = findViewById(R.id.btnSignin);
-        btnSignup = findViewById(R.id.btnSignup);
+        btnSignup = findViewById(R.id.btnSignup);  // 연결 추가
 
         dbHelper = new DBHelper(this);
 
-        // 회원가입 화면으로 이동
-        btnSignup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(SigninActivity.this, SignupActivity.class);
-                startActivity(intent);
+        btnSignin.setOnClickListener(v -> {
+            String loginId = editId.getText().toString();
+            String password = editPw.getText().toString();
+
+            int userId = dbHelper.checkUserCredentials(loginId, password);
+            if (userId != -1) {
+                SharedPreferences prefs = getSharedPreferences("login", MODE_PRIVATE);
+                prefs.edit().putInt("user_id", userId).apply();
+
+                Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, MainActivity.class));
+                finish();
+            } else {
+                Toast.makeText(this, "로그인 실패", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // 로그인 처리
-        btnSignin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String userId = editId.getText().toString().trim();
-                String userPw = editPw.getText().toString().trim();
-
-                if (userId.isEmpty() || userPw.isEmpty()) {
-                    Toast.makeText(SigninActivity.this, "아이디와 비밀번호를 입력하세요", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (dbHelper.checkUserCredentials(userId, userPw)) {
-                    Toast.makeText(SigninActivity.this, "로그인 성공", Toast.LENGTH_SHORT).show();
-
-                    // 자동 로그인 정보 저장
-                    getSharedPreferences("login", MODE_PRIVATE)
-                            .edit()
-                            .putString("user_id", userId)
-                            .apply();
-
-                    // 다음 화면으로 이동
-                    Intent intent = new Intent(SigninActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
-                }
-                else {
-                    Toast.makeText(SigninActivity.this, "아이디 또는 비밀번호가 올바르지 않습니다", Toast.LENGTH_SHORT).show();
-                }
-            }
+        // 👇 회원가입 버튼 클릭 시 SignupActivity로 이동
+        btnSignup.setOnClickListener(v -> {
+            Intent intent = new Intent(SigninActivity.this, SignupActivity.class);
+            startActivity(intent);
         });
     }
+
 }

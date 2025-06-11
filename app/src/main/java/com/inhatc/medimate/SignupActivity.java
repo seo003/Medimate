@@ -1,72 +1,93 @@
 package com.inhatc.medimate;
 
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.view.View;
+import android.text.TextUtils;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 public class SignupActivity extends AppCompatActivity {
 
-    private EditText editId, editPw, editEmail, editPhone;
-    private Button btnRegister;
+    private EditText etLoginId, etPassword, etName, etPhone, etGuardianPhone;
+    private TextView tvBirthDate;
+    private Spinner spGender;
+    private Button btnSignUp;
+
     private DBHelper dbHelper;
+    private String selectedBirthDate = "";
+    private String selectedGender = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        editId = findViewById(R.id.editId);
-        editPw = findViewById(R.id.editPw);
-        editEmail = findViewById(R.id.editEmail);
-        editPhone = findViewById(R.id.editPhone);
-        btnRegister = findViewById(R.id.btnRegister);
-
         dbHelper = new DBHelper(this);
 
-        btnRegister.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String userId = editId.getText().toString().trim();
-                String userPw = editPw.getText().toString().trim();
-                String userEmail = editEmail.getText().toString().trim();
-                String userPhone = editPhone.getText().toString().trim();
+        etLoginId = findViewById(R.id.etLoginId);
+        etPassword = findViewById(R.id.etPassword);
+        etName = findViewById(R.id.etName);
+        etPhone = findViewById(R.id.etPhone);
+        etGuardianPhone = findViewById(R.id.etGuardianPhone);
+        tvBirthDate = findViewById(R.id.tvBirthDate);
+        spGender = findViewById(R.id.spGender);
+        btnSignUp = findViewById(R.id.btnSignUp);
 
-                if (userId.isEmpty() || userPw.isEmpty() || userEmail.isEmpty() || userPhone.isEmpty()) {
-                    Toast.makeText(SignupActivity.this, "모든 항목을 입력하세요", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+        // 성별 스피너 초기화
+        ArrayAdapter<String> genderAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
+                new String[]{"남자", "여자"});
+        genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spGender.setAdapter(genderAdapter);
 
-                // 중복 아이디 체크
-                if (dbHelper.isUserIdExists(userId)) {
-                    Toast.makeText(SignupActivity.this, "이미 존재하는 아이디입니다", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+        // 생년월일 선택
+        tvBirthDate.setOnClickListener(v -> {
+            com.inhatc.medimate.DatePickerFragment fragment = new com.inhatc.medimate.DatePickerFragment(date -> {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
+                selectedBirthDate = sdf.format(date);
+                tvBirthDate.setText(selectedBirthDate);
+            });
+            fragment.show(getSupportFragmentManager(), "datePicker");
+        });
 
-                // DB에 사용자 추가
-                SQLiteDatabase db = dbHelper.getWritableDatabase();
-                ContentValues values = new ContentValues();
-                values.put("user_id", userId);
-                values.put("user_pw", userPw);
-                values.put("user_email", userEmail);
-                values.put("user_ph", userPhone);
+        // 회원가입 버튼 클릭
+        btnSignUp.setOnClickListener(v -> {
+            String loginId = etLoginId.getText().toString().trim();
+            String password = etPassword.getText().toString().trim();
+            String name = etName.getText().toString().trim();
+            String phone = etPhone.getText().toString().trim();
+            String guardianPhone = etGuardianPhone.getText().toString().trim();
+            selectedGender = spGender.getSelectedItem().toString();
 
-                long result = db.insert("users", null, values);
-                db.close();
+            if (TextUtils.isEmpty(loginId) || TextUtils.isEmpty(password) || TextUtils.isEmpty(name)
+                    || TextUtils.isEmpty(selectedBirthDate) || TextUtils.isEmpty(selectedGender) || TextUtils.isEmpty(phone)) {
+                Toast.makeText(this, "모든 필드를 입력해주세요.", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-                if (result == -1) {
-                    Toast.makeText(SignupActivity.this, "회원가입 실패", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(SignupActivity.this, "회원가입 성공", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(SignupActivity.this, SigninActivity.class));
-                    finish();
-                }
+            if (dbHelper.isUserIdExists(loginId)) {
+                Toast.makeText(this, "이미 존재하는 아이디입니다.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            boolean result = dbHelper.registerFullUser(
+                    loginId, password, name, selectedBirthDate, selectedGender, phone, guardianPhone
+            );
+
+            if (result) {
+                Toast.makeText(this, "회원가입 성공", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(SignupActivity.this, SigninActivity.class));
+                finish();
+            } else {
+                Toast.makeText(this, "회원가입 실패", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -15,11 +15,11 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
 
         new Handler().postDelayed(() -> {
-            SharedPreferences pref = getSharedPreferences("login", MODE_PRIVATE);
-            String userId = pref.getString("user_id", null);
+            SharedPreferences prefs = getSharedPreferences("login", MODE_PRIVATE);
+            int userId = prefs.getInt("user_id", -1);
 
             Intent intent;
-            if (userId != null) {
+            if (userId != -1) {
                 // 자동 로그인 상태 → MainActivity로 이동
                 intent = new Intent(SplashActivity.this, MainActivity.class);
             } else {
