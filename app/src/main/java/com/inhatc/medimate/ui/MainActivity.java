@@ -1,10 +1,11 @@
-package com.inhatc.medimate;
+package com.inhatc.medimate.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
+
+import com.inhatc.medimate.R;
 import com.inhatc.medimate.util.DrugNameDictionary;
 import androidx.appcompat.app.AppCompatActivity;
 

@@ -1,4 +1,4 @@
-package com.inhatc.medimate;
+package com.inhatc.medimate.ui;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -11,6 +11,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.inhatc.medimate.R;
+import com.inhatc.medimate.data.DBHelper;
+import com.inhatc.medimate.medication.MedicationItem;
 
 import java.util.List;
 

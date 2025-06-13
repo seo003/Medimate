@@ -1,4 +1,4 @@
-package com.inhatc.medimate;
+package com.inhatc.medimate.util;
 
 import android.content.Context;
 import android.media.MediaPlayer;

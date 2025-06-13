@@ -1,4 +1,4 @@
-package com.inhatc.medimate;
+package com.inhatc.medimate.ui;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +7,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.inhatc.medimate.R;
+import com.inhatc.medimate.medication.MedicationItem;
 
 import java.util.List;
 

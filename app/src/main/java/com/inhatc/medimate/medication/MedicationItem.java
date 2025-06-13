@@ -1,4 +1,4 @@
-package com.inhatc.medimate;
+package com.inhatc.medimate.medication;
 
 public class MedicationItem {
     private String drugName;
