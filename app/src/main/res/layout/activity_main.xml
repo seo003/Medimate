@@ -29,12 +29,23 @@
         android:layout_marginTop="40dp" />
 
     <Button
+        android:id="@+id/btnCheckMyMedi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="44dp"
+        android:text="내 약 확인하기"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnAddMedi" />
+
+    <Button
         android:id="@+id/btnLogout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="136dp"
         android:text="로그아웃"
-        app:layout_constraintTop_toBottomOf="@id/btnAddMedi"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="20dp" />
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnAddMedi" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,6 +6,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DBHelper extends SQLiteOpenHelper {
 
     public static final String DB_NAME = "medimate.db";
@@ -186,5 +189,55 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put("guardian_phone", guardianPhone);
         long result = db.insert("users", null, values);
         return result != -1;
+    }
+
+    // 사용자의 약물 목록과 스케줄 가져오기
+    public List<MedicationItem> getMedicationListForUser(int userId) {
+        List<MedicationItem> medicationList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // 1. 사용자가 복용하는 약물 정보와 약의 이름을 JOIN으로 가져온다.
+        String query = "SELECT um.medication_id, d.item_name, um.start_date, um.end_date " +
+                "FROM user_medication um " +
+                "JOIN drug d ON um.drug_id = d.drug_id " +
+                "WHERE um.user_id = ? " +
+                "ORDER BY um.start_date DESC";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
+
+        if (cursor.moveToFirst()) {
+            do {
+                // 2. 각 약물 정보(medication_id)에 해당하는 스케줄을 조회한다.
+                int medicationId = cursor.getInt(0);
+                String drugName = cursor.getString(1);
+                String period = cursor.getString(2) + " ~ " + cursor.getString(3);
+
+                Cursor scheduleCursor = db.rawQuery("SELECT dose_time, memo FROM medication_schedule WHERE medication_id = ?",
+                        new String[]{String.valueOf(medicationId)});
+
+                StringBuilder schedulesBuilder = new StringBuilder();
+                if (scheduleCursor.moveToFirst()) {
+                    do {
+                        String time = scheduleCursor.getString(0);
+                        String memo = scheduleCursor.getString(1);
+                        schedulesBuilder.append(time).append(" - ").append(memo).append("\n");
+                    } while (scheduleCursor.moveToNext());
+                }
+                scheduleCursor.close();
+
+                // 마지막 줄바꿈 문자 제거
+                if (schedulesBuilder.length() > 0) {
+                    schedulesBuilder.setLength(schedulesBuilder.length() - 1);
+                }
+
+                // 3. 최종적으로 MedicationItem 객체를 만들어 리스트에 추가한다.
+                medicationList.add(new MedicationItem(drugName, period, schedulesBuilder.toString()));
+
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return medicationList;
     }
 }

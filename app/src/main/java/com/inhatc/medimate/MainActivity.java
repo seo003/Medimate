@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnAddMedi, btnLogout;
+    private Button btnAddMedi, btnLogout, btnCheckMyMedi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,10 +20,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         btnAddMedi = findViewById(R.id.btnAddMedi);
+        btnCheckMyMedi = findViewById(R.id.btnCheckMyMedi);
         btnLogout = findViewById(R.id.btnLogout);
 
         btnAddMedi.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddMediActivity.class);
+            startActivity(intent);
+        });
+
+        btnCheckMyMedi.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CheckMyMedi.class);
             startActivity(intent);
         });
 
