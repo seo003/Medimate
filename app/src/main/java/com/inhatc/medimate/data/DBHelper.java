@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.inhatc.medimate.medication.MedicationItem;
 
@@ -198,7 +199,6 @@ public class DBHelper extends SQLiteOpenHelper {
         List<MedicationItem> medicationList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
-        // 1. 사용자가 복용하는 약물 정보와 약의 이름을 JOIN으로 가져온다.
         String query = "SELECT um.medication_id, d.item_name, um.start_date, um.end_date " +
                 "FROM user_medication um " +
                 "JOIN drug d ON um.drug_id = d.drug_id " +
@@ -209,7 +209,6 @@ public class DBHelper extends SQLiteOpenHelper {
 
         if (cursor.moveToFirst()) {
             do {
-                // 2. 각 약물 정보(medication_id)에 해당하는 스케줄을 조회한다.
                 int medicationId = cursor.getInt(0);
                 String drugName = cursor.getString(1);
                 String period = cursor.getString(2) + " ~ " + cursor.getString(3);
@@ -227,12 +226,10 @@ public class DBHelper extends SQLiteOpenHelper {
                 }
                 scheduleCursor.close();
 
-                // 마지막 줄바꿈 문자 제거
                 if (schedulesBuilder.length() > 0) {
                     schedulesBuilder.setLength(schedulesBuilder.length() - 1);
                 }
 
-                // 3. 최종적으로 MedicationItem 객체를 만들어 리스트에 추가한다.
                 medicationList.add(new MedicationItem(drugName, period, schedulesBuilder.toString()));
 
             } while (cursor.moveToNext());
@@ -241,5 +238,61 @@ public class DBHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return medicationList;
+    }
+
+    // DB 내용 확인 log
+    public void logAllTablesData(String TAG) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        if (db == null) {
+            Log.e(TAG, "Database is not available for logging.");
+            return;
+        }
+
+        Cursor tableCursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'android_%' AND name NOT LIKE 'sqlite_%'", null);
+
+        if (tableCursor != null && tableCursor.moveToFirst()) {
+            Log.d(TAG, "========= DATABASE LOG START =========");
+            do {
+                String tableName = tableCursor.getString(0);
+                logTableData(db, tableName, TAG);
+            } while (tableCursor.moveToNext());
+            Log.d(TAG, "========= DATABASE LOG END ===========");
+        } else {
+            Log.d(TAG, "No tables found in the database.");
+        }
+
+        if (tableCursor != null) {
+            tableCursor.close();
+        }
+    }
+
+    private void logTableData(SQLiteDatabase db, String tableName, String TAG) {
+        Log.d(TAG, "--- Dumping table: " + tableName + " ---");
+        Cursor dataCursor = null;
+        try {
+            dataCursor = db.rawQuery("SELECT * FROM " + tableName, null);
+            if (dataCursor != null && dataCursor.moveToFirst()) {
+                String[] columnNames = dataCursor.getColumnNames();
+                do {
+                    StringBuilder rowData = new StringBuilder("Row " + dataCursor.getPosition() + ": ");
+                    for (String colName : columnNames) {
+                        int colIndex = dataCursor.getColumnIndex(colName);
+                        rowData.append(colName)
+                                .append(" = ")
+                                .append(dataCursor.getString(colIndex))
+                                .append(" | ");
+                    }
+                    Log.d(TAG, rowData.toString());
+                } while (dataCursor.moveToNext());
+            } else {
+                Log.d(TAG, "Table '" + tableName + "' is empty.");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error dumping table " + tableName, e);
+        } finally {
+            if (dataCursor != null) {
+                dataCursor.close();
+            }
+        }
     }
 }

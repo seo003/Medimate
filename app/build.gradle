@@ -29,7 +29,6 @@ android {
 }
 
 dependencies {
-
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity
@@ -40,4 +39,5 @@ dependencies {
     androidTestImplementation libs.espresso.core
     implementation 'com.amazonaws:aws-android-sdk-core:2.70.0'
     implementation 'com.amazonaws:aws-android-sdk-polly:2.70.0'
+    implementation "androidx.work:work-runtime:2.9.0"
 }
