@@ -30,7 +30,7 @@ public class DrugNameDictionary {
                     String shortName = normalizeShortName(line);
                     if (shortName != null && !shortName.equals(line)) {
                         DrugNameCorrector.register(shortName, line);
-                        Log.d(TAG, "약어 보정 자동 등록: " + shortName + " → " + line);
+//                        Log.d(TAG, "약어 보정 자동 등록: " + shortName + " → " + line);
                     }
                 }
             }
