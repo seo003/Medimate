@@ -1,10 +1,16 @@
-package com.inhatc.medimate;
+package com.inhatc.medimate.data;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import com.inhatc.medimate.medication.MedicationItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -186,5 +192,107 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put("guardian_phone", guardianPhone);
         long result = db.insert("users", null, values);
         return result != -1;
+    }
+
+    // 사용자의 약물 목록과 스케줄 가져오기
+    public List<MedicationItem> getMedicationListForUser(int userId) {
+        List<MedicationItem> medicationList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT um.medication_id, d.item_name, um.start_date, um.end_date " +
+                "FROM user_medication um " +
+                "JOIN drug d ON um.drug_id = d.drug_id " +
+                "WHERE um.user_id = ? " +
+                "ORDER BY um.start_date DESC";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
+
+        if (cursor.moveToFirst()) {
+            do {
+                int medicationId = cursor.getInt(0);
+                String drugName = cursor.getString(1);
+                String period = cursor.getString(2) + " ~ " + cursor.getString(3);
+
+                Cursor scheduleCursor = db.rawQuery("SELECT dose_time, memo FROM medication_schedule WHERE medication_id = ?",
+                        new String[]{String.valueOf(medicationId)});
+
+                StringBuilder schedulesBuilder = new StringBuilder();
+                if (scheduleCursor.moveToFirst()) {
+                    do {
+                        String time = scheduleCursor.getString(0);
+                        String memo = scheduleCursor.getString(1);
+                        schedulesBuilder.append(time).append(" - ").append(memo).append("\n");
+                    } while (scheduleCursor.moveToNext());
+                }
+                scheduleCursor.close();
+
+                if (schedulesBuilder.length() > 0) {
+                    schedulesBuilder.setLength(schedulesBuilder.length() - 1);
+                }
+
+                medicationList.add(new MedicationItem(drugName, period, schedulesBuilder.toString()));
+
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return medicationList;
+    }
+
+    // DB 내용 확인 log
+    public void logAllTablesData(String TAG) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        if (db == null) {
+            Log.e(TAG, "Database is not available for logging.");
+            return;
+        }
+
+        Cursor tableCursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'android_%' AND name NOT LIKE 'sqlite_%'", null);
+
+        if (tableCursor != null && tableCursor.moveToFirst()) {
+            Log.d(TAG, "========= DATABASE LOG START =========");
+            do {
+                String tableName = tableCursor.getString(0);
+                logTableData(db, tableName, TAG);
+            } while (tableCursor.moveToNext());
+            Log.d(TAG, "========= DATABASE LOG END ===========");
+        } else {
+            Log.d(TAG, "No tables found in the database.");
+        }
+
+        if (tableCursor != null) {
+            tableCursor.close();
+        }
+    }
+
+    private void logTableData(SQLiteDatabase db, String tableName, String TAG) {
+        Log.d(TAG, "--- Dumping table: " + tableName + " ---");
+        Cursor dataCursor = null;
+        try {
+            dataCursor = db.rawQuery("SELECT * FROM " + tableName, null);
+            if (dataCursor != null && dataCursor.moveToFirst()) {
+                String[] columnNames = dataCursor.getColumnNames();
+                do {
+                    StringBuilder rowData = new StringBuilder("Row " + dataCursor.getPosition() + ": ");
+                    for (String colName : columnNames) {
+                        int colIndex = dataCursor.getColumnIndex(colName);
+                        rowData.append(colName)
+                                .append(" = ")
+                                .append(dataCursor.getString(colIndex))
+                                .append(" | ");
+                    }
+                    Log.d(TAG, rowData.toString());
+                } while (dataCursor.moveToNext());
+            } else {
+                Log.d(TAG, "Table '" + tableName + "' is empty.");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error dumping table " + tableName, e);
+        } finally {
+            if (dataCursor != null) {
+                dataCursor.close();
+            }
+        }
     }
 }

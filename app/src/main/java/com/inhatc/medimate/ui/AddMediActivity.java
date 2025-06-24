@@ -1,4 +1,4 @@
-package com.inhatc.medimate;
+package com.inhatc.medimate.ui;
 
 import android.content.ContentValues;
 import android.content.Intent;
@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -16,6 +15,9 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.inhatc.medimate.R;
+import com.inhatc.medimate.data.DBHelper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

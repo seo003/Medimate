@@ -29,7 +29,7 @@ public class DrugNameCorrector {
 
     public static void register(String shortName, String fullName) {
         corrections.put(shortName, fullName);
-        Log.d(TAG, "[register] 수동 등록: " + shortName + " → " + fullName);
+//        Log.d(TAG, "[register] 수동 등록: " + shortName + " → " + fullName);
     }
     public static void initialize(Context context) {
         try {

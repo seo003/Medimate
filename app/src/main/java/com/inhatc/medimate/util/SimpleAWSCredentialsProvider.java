@@ -1,4 +1,4 @@
-package com.inhatc.medimate;
+package com.inhatc.medimate.util;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
