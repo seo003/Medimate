@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#FFFFFF">
 
     <!-- 타이틀 -->
     <TextView
@@ -37,13 +38,16 @@
     <!-- 분석 버튼 -->
     <Button
         android:id="@+id/btnAnalyze"
-        android:layout_width="wrap_content"
+        android:layout_width="400dp"
         android:layout_height="wrap_content"
         android:text="약 분석하기"
         android:layout_marginTop="20dp"
+        android:backgroundTint="#000000"
+        android:textColor="#FFFFFF"
         app:layout_constraintTop_toBottomOf="@id/imagePreview"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
 
     <!-- 결과 영역 -->
     <ScrollView
