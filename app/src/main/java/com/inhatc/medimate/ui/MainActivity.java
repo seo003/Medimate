@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.inhatc.medimate.R;
 import com.inhatc.medimate.alarm.AlarmScheduler;
+import com.inhatc.medimate.chatbot.ChatbotActivity;
 import com.inhatc.medimate.util.DrugNameDictionary;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -26,7 +27,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnAddMedi, btnLogout, btnCheckMyMedi;
+    private Button btnAddMedi, btnLogout, btnCheckMyMedi, btnChatbot;
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         btnAddMedi = findViewById(R.id.btnAddMedi);
         btnCheckMyMedi = findViewById(R.id.btnCheckMyMedi);
         btnLogout = findViewById(R.id.btnLogout);
+        btnChatbot = findViewById(R.id.btnChatbot);
 
         btnAddMedi.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddMediActivity.class);
@@ -54,6 +56,11 @@ public class MainActivity extends AppCompatActivity {
 
         btnCheckMyMedi.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, CheckMyMedi.class);
+            startActivity(intent);
+        });
+
+        btnChatbot.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ChatbotActivity.class);
             startActivity(intent);
         });
 

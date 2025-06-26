@@ -39,13 +39,23 @@
         app:layout_constraintTop_toBottomOf="@id/btnAddMedi" />
 
     <Button
+        android:id="@+id/btnChatbot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="44dp"
+        android:text="챗봇"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnCheckMyMedi" />
+
+    <Button
         android:id="@+id/btnLogout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="136dp"
+        android:layout_marginTop="44dp"
         android:text="로그아웃"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnAddMedi" />
+        app:layout_constraintTop_toBottomOf="@+id/btnChatbot" />
 </androidx.constraintlayout.widget.ConstraintLayout>
