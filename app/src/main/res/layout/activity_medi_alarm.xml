@@ -34,10 +34,10 @@
 
     <Button
         android:id="@+id/btnMediAlarm"
-        android:layout_width="300dp"
+        android:layout_width="350dp"
         android:layout_height="80dp"
         android:layout_marginBottom="228dp"
-        android:backgroundTint="#E6467C"
+        android:backgroundTint="#000000"
         android:text="다음"
         android:textColor="#FFFFFF"
         android:textSize="20sp"
@@ -46,6 +46,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.585"
         app:layout_constraintStart_toStartOf="parent"  />
+
 
     <ImageView
         android:id="@+id/imageView2"
